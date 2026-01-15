@@ -40,7 +40,6 @@ const App: React.FC = () => {
     const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
     
     return lines.slice(1).map((line, index) => {
-      // 쉼표로 구분하되 따옴표 안의 값은 유지하는 정규식 개선
       const values: string[] = [];
       let current = '';
       let inQuotes = false;
@@ -77,7 +76,7 @@ const App: React.FC = () => {
   };
 
   const loadData = async (url: string) => {
-    if (!url) return;
+    if (!url || isLoading) return;
     
     setIsLoading(true);
     try {
@@ -92,16 +91,21 @@ const App: React.FC = () => {
         return;
       }
 
+      // 1단계: 마커 없이 리스트 먼저 표시
+      setClients(parsedData);
+      
+      // 2단계: 좌표 순차적 업데이트 (Nominatim 속도 제한 준수)
       const withCoords: Client[] = [];
       for (const client of parsedData) {
         if (client.address) {
           const coords = await geocodeAddress(client.address);
           withCoords.push({ ...client, lat: coords?.lat, lng: coords?.lng });
+          // Nominatim TOS 준수를 위한 아주 짧은 지연 (선택 사항)
+          await new Promise(resolve => setTimeout(resolve, 100));
         } else {
           withCoords.push(client);
         }
       }
-
       setClients(withCoords);
       setShowImportModal(false);
     } catch (error) {
@@ -145,7 +149,7 @@ const App: React.FC = () => {
             {isLoading && clients.length === 0 ? (
                 <div className="py-24 text-center flex flex-col items-center gap-4">
                     <Loader2 className="animate-spin text-blue-500" size={40} />
-                    <p className="text-gray-500 font-bold animate-pulse">시트 데이터를 불러오는 중...</p>
+                    <p className="text-gray-500 font-bold animate-pulse">데이터 로딩 중...</p>
                 </div>
             ) : filteredClients.length > 0 ? (
               filteredClients.map(client => (
@@ -161,7 +165,6 @@ const App: React.FC = () => {
                 <Database size={56} className="mx-auto text-gray-200" />
                 <div className="space-y-2">
                     <p className="text-gray-600 font-bold">표시할 데이터가 없습니다.</p>
-                    <p className="text-gray-400 text-xs leading-relaxed">구글 시트의 [웹에 게시] 설정이<br/>'CSV'로 되어있는지 확인해주세요.</p>
                 </div>
                 <button 
                     onClick={() => setShowImportModal(true)} 
@@ -201,10 +204,10 @@ const App: React.FC = () => {
             <MapIcon size={18} /> 목록 열기
           </button>
         )}
-        {isLoading && clients.length > 0 && (
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[1000] bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-blue-100 animate-bounce">
+        {isLoading && (
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[1000] bg-white/90 backdrop-blur-md px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-blue-100 animate-bounce">
             <Loader2 className="animate-spin text-blue-600" size={18} />
-            <span className="text-sm font-black text-gray-800 tracking-tight">최신 데이터 동기화 중...</span>
+            <span className="text-sm font-black text-gray-800 tracking-tight">주소 좌표 변환 중...</span>
           </div>
         )}
       </div>
@@ -217,15 +220,6 @@ const App: React.FC = () => {
                 <UploadCloud className="text-blue-600" strokeWidth={3} /> 소스 설정
               </h2>
               <button onClick={() => setShowImportModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X size={28} /></button>
-            </div>
-            <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100 mb-8 flex gap-4">
-              <AlertTriangle className="text-blue-600 flex-shrink-0" size={24} />
-              <div>
-                <p className="text-sm font-black text-blue-900 mb-1 tracking-tight">구글 시트 연동 팁</p>
-                <p className="text-xs text-blue-800/80 leading-relaxed font-medium text-pretty">
-                  <b>[파일 &gt; 공유 &gt; 웹에 게시]</b>에서 형식을 반드시 <b>CSV</b>로 선택하고 주소를 복사해야 지도가 정상적으로 나타납니다!
-                </p>
-              </div>
             </div>
             <div className="space-y-6">
                 <div>
@@ -242,7 +236,7 @@ const App: React.FC = () => {
                     onClick={() => loadData(sheetUrl)} 
                     className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-blue-200 hover:bg-blue-700 hover:-translate-y-1 transition-all active:scale-95"
                 >
-                    데이터 새로고침
+                    데이터 동기화
                 </button>
             </div>
           </div>
