@@ -1,0 +1,7 @@
+{
+  "name": "Smart Client Visit Map",
+  "description": "A focused client management and mapping tool. View your business contacts on an interactive map, search through clients, and quickly access contact information with integrated click-to-call functionality.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
