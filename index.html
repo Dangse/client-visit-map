@@ -16,7 +16,6 @@
             padding: 0;
             overflow: hidden;
         }
-        /* Leaflet 팝업 스타일 커스텀 */
         .leaflet-popup-content-wrapper {
             border-radius: 12px;
             padding: 4px;
@@ -49,12 +48,10 @@
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans">
     <div id="root"></div>
-    
-    <!-- 외부 라이브러리 로드 -->
+    <!-- Leaflet 및 MarkerCluster는 CDN으로 유지하여 빌드 속도를 높입니다. -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    
-    <!-- 메인 로직 연결 (Vite가 빌드 시 처리함) -->
-    <script type="module" src="/index.tsx"></script>
+    <!-- Vite는 상대 경로로 index.tsx를 참조해야 합니다. -->
+    <script type="module" src="index.tsx"></script>
 </body>
 </html>
