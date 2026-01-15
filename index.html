@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -48,8 +47,10 @@
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans">
     <div id="root"></div>
+    <!-- 외부 라이브러리 로드 -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script type="module" src="/index.tsx"></script>
+    <!-- Vite 엔트리 포인트 (절대 경로로 변경하여 빌드 안정성 확보) -->
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>
