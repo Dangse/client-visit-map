@@ -1,0 +1,10 @@
+name: CI Test # 자동화 이름
+on: [push]    # 코드를 push(올리기) 할 때마다 실행
+
+jobs:
+  check-code:
+    runs-on: ubuntu-latest # 가상 컴퓨터 운영체제
+    steps:
+      - uses: actions/checkout@v4 # 내 코드를 가져옴
+      - name: Say Hello
+        run: echo "코드가 성공적으로 업로드되었습니다! 자동화 테스트 시작!"
