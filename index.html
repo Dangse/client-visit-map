@@ -48,10 +48,10 @@
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans">
     <div id="root"></div>
-    <!-- Leaflet 및 MarkerCluster는 CDN으로 유지하여 빌드 속도를 높입니다. -->
+    <!-- Leaflet 및 MarkerCluster는 CDN으로 유지 -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <!-- Vite는 상대 경로로 index.tsx를 참조해야 합니다. -->
-    <script type="module" src="index.tsx"></script>
+    <!-- Vite 엔트리 포인트 -->
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
