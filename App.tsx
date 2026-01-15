@@ -6,7 +6,6 @@ import ClientCard from './components/ClientCard';
 import MapView from './components/MapView';
 import { geocodeAddress } from './services/geminiService';
 
-// 제공해주신 구글 시트 주소를 CSV 형식으로 변환하여 입력했습니다.
 const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7VTCRMlAbmi0WwxQfxSuBUv4JzgWlNYYChrdAQuoTj68nph8p-C4iMWRfhmWV7TpKmui-SyzKx-Pr/pub?gid=1142932116&single=true&output=csv"; 
 
 const App: React.FC = () => {
@@ -34,23 +33,31 @@ const App: React.FC = () => {
     setSelectedClientId(client.id);
   }, []);
 
-  const parseCSV = (text: string) => {
-    const lines = text.split(/\r?\n/);
+  const parseCSV = (text: string): Client[] => {
+    const lines = text.split(/\r?\n/).filter(line => line.trim());
     if (lines.length === 0) return [];
     
-    // 첫 줄(헤더) 추출
     const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
     
-    return lines.slice(1).filter(line => line.trim()).map((line, index) => {
-      // 쉼표로 구분하되 따옴표 안의 쉼표는 유지하는 정규식
-      const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
-      const values = [];
-      let m;
-      while ((m = regex.exec(line)) !== null) {
-        values.push(m[1].replace(/^"|"$/g, '').trim());
-      }
+    return lines.slice(1).map((line, index) => {
+      // 쉼표로 구분하되 따옴표 안의 값은 유지하는 정규식 개선
+      const values: string[] = [];
+      let current = '';
+      let inQuotes = false;
       
-      const entry: any = {};
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') inQuotes = !inQuotes;
+        else if (char === ',' && !inQuotes) {
+          values.push(current.trim().replace(/^"|"$/g, ''));
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      values.push(current.trim().replace(/^"|"$/g, ''));
+      
+      const entry: Record<string, string> = {};
       headers.forEach((header, i) => {
         entry[header] = values[i] || '';
       });
@@ -61,7 +68,7 @@ const App: React.FC = () => {
         representative: entry['대표자'] || entry['대표'] || '-',
         businessType: entry['업태'] || '-',
         category: entry['종목'] || '-',
-        type: (entry['구분'] === '법인' ? 'Corporation' : 'Individual') as 'Corporation' | 'Individual',
+        type: (entry['구분'] === '법인' ? 'Corporation' : 'Individual'),
         address: entry['주소'] || '',
         businessNumber: entry['사업자번호'] || '-',
         phone: entry['전화번호'] || entry['연락처'] || '',
@@ -85,8 +92,7 @@ const App: React.FC = () => {
         return;
       }
 
-      // 주소를 좌표로 변환 (순차적으로 진행하여 API 부하 조절)
-      const withCoords = [];
+      const withCoords: Client[] = [];
       for (const client of parsedData) {
         if (client.address) {
           const coords = await geocodeAddress(client.address);
@@ -100,13 +106,11 @@ const App: React.FC = () => {
       setShowImportModal(false);
     } catch (error) {
       console.error("데이터 로딩 실패:", error);
-      if (url !== DEFAULT_SHEET_URL) alert("데이터 로딩 실패! URL이 CSV 형식이 맞는지 확인해주세요.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 앱 실행 시 자동 실행
   useEffect(() => {
     loadData(DEFAULT_SHEET_URL);
   }, []);
@@ -117,7 +121,6 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen w-full bg-gray-50 overflow-hidden font-sans text-gray-900">
-      {/* Sidebar */}
       <div className={`transition-all duration-300 bg-white border-r border-gray-200 flex flex-col shadow-2xl z-20 ${isSidebarOpen ? 'w-96' : 'w-0 overflow-hidden'}`}>
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0">
           <h1 className="text-xl font-black text-blue-600 flex items-center gap-2 tracking-tight">
@@ -188,7 +191,6 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Map */}
       <div className="flex-1 relative z-10">
         <MapView clients={filteredClients} selectedClient={selectedClient} onClientSelect={handleClientSelect} />
         {!isSidebarOpen && (
@@ -207,7 +209,6 @@ const App: React.FC = () => {
         )}
       </div>
 
-      {/* Modal */}
       {showImportModal && (
         <div className="fixed inset-0 z-[3000] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md">
           <div className="bg-white rounded-[2.5rem] p-10 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
