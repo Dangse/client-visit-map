@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Smart Client Visit Map</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -14,23 +15,26 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
+            background-color: #f8fafc;
         }
-        .leaflet-popup-content-wrapper {
-            border-radius: 12px;
-            padding: 4px;
+        /* Leaflet 기본 UI 숨기기 및 커스텀 */
+        .leaflet-control-zoom { display: none; }
+        .leaflet-bottom.leaflet-right { bottom: 20px; right: 20px; }
+        
+        /* 스크롤바 숨기기 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* 팝업 제거 (카드를 하단에 따로 띄울 것이므로) */
+        .leaflet-popup { display: none !important; }
+
+        /* 애니메이션 */
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 <script type="importmap">
@@ -40,17 +44,16 @@
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
     "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "vite": "https://esm.sh/vite@^7.3.1"
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@google/genai": "https://esm.sh/@google/genai@^1.36.0"
   }
 }
 </script>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans">
+<body class="text-gray-900 font-sans">
     <div id="root"></div>
-    <!-- 외부 라이브러리 로드 -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <!-- Vite 엔트리 포인트 (절대 경로로 변경하여 빌드 안정성 확보) -->
-    <script type="module" src="./index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>

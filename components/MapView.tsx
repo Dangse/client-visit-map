@@ -6,55 +6,43 @@ interface MapViewProps {
   clients: Client[];
   selectedClient: Client | null;
   onClientSelect: (client: Client) => void;
+  myLocation: [number, number] | null;
 }
 
-// 브라우저에 전역으로 로드된 Leaflet(L)을 사용하기 위한 선언
 declare const L: any;
 
-const MapView: React.FC<MapViewProps> = ({ clients, selectedClient, onClientSelect }) => {
+const MapView: React.FC<MapViewProps> = ({ clients, selectedClient, onClientSelect, myLocation }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const clusterGroupRef = useRef<any>(null);
   const markersRef = useRef<{ [key: string]: any }>({});
+  const myLocMarkerRef = useRef<any>(null);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    // Leaflet 라이브러리가 완전히 준비되었는지 확인하는 함수
     const initMap = () => {
       if (typeof L === 'undefined') {
-        // 아직 준비 안 됐으면 0.1초 뒤에 다시 시도
         setTimeout(initMap, 100);
         return;
       }
 
       if (mapInstanceRef.current) return;
 
-      // 지도 초기화 (서울 시청 기준)
       mapInstanceRef.current = L.map(mapContainerRef.current, {
-        zoomControl: false // 기본 줌 버튼 숨김 (나중에 커스텀 가능)
+        zoomControl: false,
+        attributionControl: false
       }).setView([37.5665, 126.9780], 11);
       
-      // 오픈스트리트맵 타일 추가
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(mapInstanceRef.current);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstanceRef.current);
 
-      // 마커 클러스터(뭉쳐 보이는 기능) 설정
       clusterGroupRef.current = L.markerClusterGroup({
           showCoverageOnHover: false,
           zoomToBoundsOnClick: true,
-          maxClusterRadius: 50
+          maxClusterRadius: 40
       });
       
       mapInstanceRef.current.addLayer(clusterGroupRef.current);
-
-      // 중요: 지도가 처음에 깨져 보이지 않도록 화면 크기를 다시 계산하게 함
-      setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-        }
-      }, 300);
     };
 
     initMap();
@@ -67,6 +55,25 @@ const MapView: React.FC<MapViewProps> = ({ clients, selectedClient, onClientSele
     };
   }, []);
 
+  // 내 위치 표시 업데이트
+  useEffect(() => {
+    if (!mapInstanceRef.current || !myLocation) return;
+    
+    if (myLocMarkerRef.current) {
+      myLocMarkerRef.current.setLatLng(myLocation);
+    } else {
+      const myIcon = L.divIcon({
+        className: 'my-location-marker',
+        html: `<div style="width: 20px; height: 20px; background: #3b82f6; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(59,130,246,0.6);"></div>`,
+        iconSize: [20, 20]
+      });
+      myLocMarkerRef.current = L.marker(myLocation, { icon: myIcon }).addTo(mapInstanceRef.current);
+    }
+    
+    mapInstanceRef.current.flyTo(myLocation, 14);
+  }, [myLocation]);
+
+  // 거래처 마커 업데이트
   useEffect(() => {
     if (!mapInstanceRef.current || !clusterGroupRef.current || typeof L === 'undefined') return;
 
@@ -77,20 +84,8 @@ const MapView: React.FC<MapViewProps> = ({ clients, selectedClient, onClientSele
       if (client.lat && client.lng) {
         const marker = L.marker([client.lat, client.lng]);
         
-        const popupContent = `
-          <div class="p-2 min-w-[150px]">
-            <h4 class="font-bold text-base border-b pb-1 mb-2">${client.name}</h4>
-            <p class="text-xs text-gray-600">대표: ${client.representative}</p>
-            <div class="mt-2 pt-1 border-t">
-              <a href="tel:${client.phone}" class="text-blue-600 font-bold text-sm inline-flex items-center gap-1">
-                📞 전화하기
-              </a>
-            </div>
-          </div>
-        `;
-
-        marker.bindPopup(popupContent);
-        marker.on('click', () => {
+        marker.on('click', (e: any) => {
+          L.DomEvent.stopPropagation(e);
           onClientSelect(client);
         });
 
@@ -99,26 +94,28 @@ const MapView: React.FC<MapViewProps> = ({ clients, selectedClient, onClientSele
       }
     });
 
+    // 검색 결과가 있는 경우 해당 범위로 지도 맞춤
     if (clients.length > 0) {
-        const coords = clients
-            .filter(c => c.lat && c.lng)
-            .map(c => [c.lat, c.lng]);
-        
-        if (coords.length > 0) {
-            mapInstanceRef.current.fitBounds(coords, { padding: [50, 50] });
-        }
+      const validCoords = clients
+        .filter(c => c.lat && c.lng)
+        .map(c => [c.lat, c.lng]);
+      
+      if (validCoords.length > 0 && clients.length < 10) { // 너무 많을 때는 맞춤 방지 (클러스터가 알아서 함)
+         mapInstanceRef.current.fitBounds(validCoords, { padding: [100, 100], maxZoom: 15 });
+      }
     }
   }, [clients, onClientSelect]);
 
+  // 카드 선택 시 지도 이동
   useEffect(() => {
-    if (selectedClient && markersRef.current[selectedClient.id] && mapInstanceRef.current) {
-        const marker = markersRef.current[selectedClient.id];
-        mapInstanceRef.current.setView([selectedClient.lat, selectedClient.lng], 16);
-        marker.openPopup();
+    if (selectedClient && selectedClient.lat && selectedClient.lng && mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([selectedClient.lat, selectedClient.lng], 16, {
+        duration: 0.8
+      });
     }
   }, [selectedClient]);
 
-  return <div ref={mapContainerRef} className="w-full h-full bg-slate-100" />;
+  return <div ref={mapContainerRef} className="h-full w-full" />;
 };
 
 export default MapView;
