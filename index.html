@@ -33,9 +33,9 @@
     "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
-    "vite": "https://esm.sh/vite@^7.3.1",
     "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "vite": "https://esm.sh/vite@^7.3.1"
   }
 }
 </script>
@@ -43,8 +43,11 @@
 <body class="text-gray-900 font-sans">
     <div id="root"></div>
     
+    <!-- 외부 라이브러리는 CDN으로 유지 (지도는 이게 더 안정적임) -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    
+    <!-- Vite가 이 파일을 읽어서 자바스크립트로 변환합니다 -->
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>
