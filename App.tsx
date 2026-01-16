@@ -1,6 +1,10 @@
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Search, Map as MapIcon, Loader2, X, RefreshCw, Navigation, Phone, User, Building2, Hash, MapPin, ExternalLink, LocateFixed, Settings, ChevronRight } from 'lucide-react';
+import { 
+  Search, Map as MapIcon, Loader2, X, RefreshCw, Navigation, 
+  Phone, User, Building2, Hash, MapPin, LocateFixed, 
+  Settings, ChevronRight 
+} from 'lucide-react';
 import { Client } from './types';
 import MapView from './components/MapView';
 import { batchGeocodeWithGemini, getCachedCoords } from './services/geminiService';
@@ -19,7 +23,6 @@ const App: React.FC = () => {
 
   const loadingRef = useRef(false);
 
-  // 검색 필터링
   const filteredClients = useMemo(() => {
     if (!searchQuery.trim()) return clients;
     return clients.filter(c => 
@@ -32,12 +35,11 @@ const App: React.FC = () => {
     return clients.find(c => c.id === selectedClientId) || null;
   }, [clients, selectedClientId]);
 
-  // 내 위치 가져오기
   const findMyLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
         setMyLocation([pos.coords.latitude, pos.coords.longitude]);
-      });
+      }, (err) => console.warn("Location error:", err));
     }
   };
 
@@ -111,7 +113,6 @@ const App: React.FC = () => {
 
   useEffect(() => { loadData(sheetUrl); }, []);
 
-  // 검색 결과가 1개일 때 자동 선택 로직
   useEffect(() => {
     if (searchQuery.trim() && filteredClients.length === 1) {
       setSelectedClientId(filteredClients[0].id);
@@ -120,7 +121,6 @@ const App: React.FC = () => {
 
   return (
     <div className="relative h-full w-full bg-gray-50 overflow-hidden font-sans">
-      {/* 맵 배경 */}
       <MapView 
         clients={filteredClients} 
         selectedClient={selectedClient} 
@@ -128,7 +128,6 @@ const App: React.FC = () => {
         myLocation={myLocation}
       />
 
-      {/* 상단 플로팅 검색바 */}
       <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-col gap-2 pointer-events-none">
         <div className="flex gap-2 pointer-events-auto">
           <div className="relative flex-1 group shadow-2xl rounded-2xl overflow-hidden border border-white/20">
@@ -158,7 +157,6 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        {/* 검색 결과 리스트 (여러 개일 때만 노출) */}
         {searchQuery.trim() && filteredClients.length > 1 && !selectedClientId && (
           <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 max-h-48 overflow-y-auto no-scrollbar pointer-events-auto slide-up">
             {filteredClients.map(c => (
@@ -171,7 +169,6 @@ const App: React.FC = () => {
                   <div className="font-bold text-gray-900">{c.name}</div>
                   <div className="text-[10px] text-gray-500">{c.representative} 대표 · {c.address.substring(0, 20)}...</div>
                 </div>
-                {/* Fixed: ChevronRight was missing from imports */}
                 <ChevronRight size={14} className="text-gray-300" />
               </button>
             ))}
@@ -179,7 +176,6 @@ const App: React.FC = () => {
         )}
       </div>
 
-      {/* 내 위치 버튼 */}
       <button 
         onClick={findMyLocation}
         className="absolute bottom-32 right-4 z-[1000] p-4 bg-white rounded-2xl shadow-2xl border border-gray-100 text-blue-600 active:scale-90 transition-all"
@@ -187,7 +183,6 @@ const App: React.FC = () => {
         <LocateFixed size={24} />
       </button>
 
-      {/* 하단 상세 고객 카드 */}
       {selectedClient && (
         <div className="absolute bottom-4 left-4 right-4 z-[1001] slide-up">
           <div className="bg-white rounded-[2.5rem] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 relative overflow-hidden">
@@ -253,7 +248,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* 설정 모달 (URL 변경용) */}
       {showConfig && (
         <div className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
           <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm shadow-2xl">
@@ -282,7 +276,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* 로딩 표시 */}
       {(isLoading || isGeocoding) && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[1000] bg-black/80 backdrop-blur-md text-white px-6 py-3 rounded-full flex items-center gap-3 shadow-2xl border border-white/10">
           <Loader2 className="animate-spin text-blue-400" size={18} />
