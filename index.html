@@ -17,18 +17,11 @@
             overflow: hidden;
             background-color: #f8fafc;
         }
-        /* Leaflet 기본 UI 숨기기 및 커스텀 */
         .leaflet-control-zoom { display: none; }
         .leaflet-bottom.leaflet-right { bottom: 20px; right: 20px; }
-        
-        /* 스크롤바 숨기기 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* 팝업 제거 (카드를 하단에 따로 띄울 것이므로) */
         .leaflet-popup { display: none !important; }
-
-        /* 애니메이션 */
         .slide-up {
             animation: slideUp 0.3s ease-out;
         }
@@ -54,6 +47,7 @@
     <div id="root"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script type="module" src="/index.tsx"></script>
+    <!-- /index.tsx 에서 index.tsx로 수정 (경로 문제 해결) -->
+    <script type="module" src="index.tsx"></script>
 </body>
 </html>

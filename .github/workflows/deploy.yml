@@ -21,11 +21,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Build
+        # 빌드 명령을 내릴 때 저장소에 등록한 Secret을 가져와 사용합니다.
         run: npm run build
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
