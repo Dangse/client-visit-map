@@ -2,7 +2,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: './',
+  base: '/client-visit-map/', // 주소 고정
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
