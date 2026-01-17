@@ -1,8 +1,12 @@
 
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: '/client-visit-map/', // 주소 고정
+  plugins: [react()],
+  // GitHub Pages의 리포지토리 이름과 일치시켜야 합니다.
+  // 예: https://user.github.io/client-visit-map/
+  base: '/client-visit-map/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
