@@ -122,7 +122,7 @@ const App: React.FC = () => {
   return (
     <div className="relative h-full w-full bg-gray-50 overflow-hidden font-sans">
       <MapView 
-        clients={filteredClients} 
+        clients={clients} 
         selectedClient={selectedClient} 
         onClientSelect={(c) => setSelectedClientId(c.id)} 
         myLocation={myLocation}
@@ -149,6 +149,12 @@ const App: React.FC = () => {
               </button>
             )}
           </div>
+          <button 
+            onClick={() => {setSearchQuery(''); setSelectedClientId(null);}}
+            className="p-4 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 text-gray-600 pointer-events-auto active:scale-95 transition-transform"
+          >
+            <RefreshCw size={22} />
+          </button>
           <button 
             onClick={() => setShowConfig(true)}
             className="p-4 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 text-gray-600 pointer-events-auto active:scale-95 transition-transform"
