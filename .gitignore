@@ -1,5 +1,6 @@
 node_modules/
 dist/
+
 .DS_Store
 
 # 환경 변수 파일 (반드시 추가!)

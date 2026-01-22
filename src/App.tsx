@@ -9,7 +9,7 @@ import SearchBar from './components/SearchBar';
 import ConfigModal from './components/ConfigModal';
 
 // 서비스 로직 불러오기
-import { batchGeocodeWithGemini, getCachedCoords } from './services/geminiService';
+import { batchGeocodeWithGemini, getCachedCoords } from './Services/geminiService';
 
 const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7VTCRMlAbmi0WwxQfxSuBUv4JzgWlNYYChrdAQuoTj68nph8p-C4iMWRfhmWV7TpKmui-SyzKx-Pr/pub?gid=1142932116&single=true&output=csv";
 

@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   // GitHub Pages의 리포지토리 이름과 일치시켜야 합니다.
   // 예: https://user.github.io/client-visit-map/
-  base: '/client-visit-map/',
+  base: '/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

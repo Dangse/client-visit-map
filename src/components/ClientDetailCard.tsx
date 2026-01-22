@@ -4,7 +4,7 @@ import {
   Navigation, Sparkles, Loader2, BrainCircuit 
 } from 'lucide-react';
 import { Client } from '../types';
-import { getClientInsights } from '../services/geminiService';
+import { getClientInsights } from '../Services/geminiService';
 
 interface Props {
   client: Client;
