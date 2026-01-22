@@ -86,7 +86,7 @@ const MapView: React.FC<MapViewProps> = ({ clients, selectedClient, onClientSele
         const marker = L.marker([client.lat, client.lng], {
           icon: isSelected ? L.divIcon({
             className: 'selected-marker',
-            html: `<div style="width: 40px; height: 40px; background: #ef4444; border: 4px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(239,68,68,0.6);"></div>`,
+            html: `<div style="width: 20px; height: 20px; background: #ef4444; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(239,68,68,0.6);"></div>`,
             iconSize: [20, 20]
           }) : L.icon({
             iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
