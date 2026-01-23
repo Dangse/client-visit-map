@@ -17,7 +17,7 @@ export default async function handler(req: any, res: any) {
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }]
     });
-    res.status(200).send(response.text());
+    res.status(200).send(response.text);
   } catch (error) {
     res.status(500).send("현재 AI 비서가 응답할 수 없습니다.");
   }
