@@ -127,25 +127,31 @@ const App: React.FC = () => {
 
   // 5. 화면 렌더링 (UI)
   return (
-    <div className="relative h-full w-full bg-gray-50 overflow-hidden font-sans">
-      {/* 지도 영역 */}
+  <div className="relative h-screen w-full bg-gray-50 overflow-hidden font-sans flex flex-col">
+    {/* [지도 영역 안전장치] 
+       1. flex-1을 주어 상단 검색바를 제외한 나머지 모든 공간을 차지하게 합니다.
+       2. min-h-0은 flex 자식 요소의 높이 붕괴를 막는 중요한 브라우저 호환성 코드입니다.
+       3. h-full을 통해 내부 MapView가 부모 높이를 상속받을 수 있는 기반을 만듭니다.
+    */}
+    <div className="flex-1 w-full relative min-h-0">
       <MapView 
         clients={clients} 
         selectedClient={selectedClient} 
         onClientSelect={(c) => setSelectedClientId(c.id)} 
         myLocation={myLocation}
       />
+    </div>
 
-      {/* 상단 검색바 (분리된 컴포넌트) */}
-      <SearchBar 
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onRefresh={() => {setSearchQuery(''); setSelectedClientId(null);}}
-        onOpenConfig={() => setShowConfig(true)}
-        filteredClients={filteredClients}
-        selectedClientId={selectedClientId}
-        onSelectClient={(id) => setSelectedClientId(id)}
-      />
+    {/* 상단 검색바 (지도가 flex-1이므로 아래 UI들은 absolute로 그 위에 배치됨) */}
+    <SearchBar 
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
+      onRefresh={() => {setSearchQuery(''); setSelectedClientId(null);}}
+      onOpenConfig={() => setShowConfig(true)}
+      filteredClients={filteredClients}
+      selectedClientId={selectedClientId}
+      onSelectClient={(id) => setSelectedClientId(id)}
+    />
 
       {/* 내 위치 버튼 */}
       <button 
