@@ -33,36 +33,55 @@ const App: React.FC = () => {
     clients.find(c => c.id === selectedClientId) || null
   , [clients, selectedClientId]);
 
-  const loadData = useCallback(async (url: string) => {
-    if (loadingRef.current) return;
-    loadingRef.current = true;
-    setIsLoading(true);
+// 데이터 로드 함수시작 
+  // App.tsx 내부의 loadData 함수 핵심 수정 부분
+const loadData = useCallback(async (url: string) => {
+  if (loadingRef.current) return;
+  loadingRef.current = true;
+  setIsLoading(true);
 
-    try {
-      const response = await fetch(url);
-      const csvText = await response.text();
-      const lines = csvText.split('\n').map(l => l.trim()).filter(l => l !== '');
-      
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-      const getIdx = (name: string) => headers.findIndex(h => h.includes(name));
+  try {
+    const response = await fetch(url);
+    const csvText = await response.text();
+    const lines = csvText.split('\n').map(l => l.trim()).filter(l => l !== '');
+    
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+    const getIdx = (name: string) => headers.findIndex(h => h.includes(name));
 
-      const parsedClients: Client[] = lines.slice(1).map((line, index) => {
-        const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-        return {
-          id: `client-${index}`,
-          name: values[getIdx("상호")] || '',
-          representative: values[getIdx("대표자")] || '',
-          type: (values[getIdx("개인/법인")] || '').includes("법인") ? 'Corporation' : 'Individual',
-          businessNumber: values[getIdx("사업자번호")] || '',
-          address: values[getIdx("주소")] || '',
-          phone: values[getIdx("전화번호")] || '',
-          businessType: values[getIdx("종목")] || '',
-          category: values[getIdx("업태")] || '',
-          // 시트의 lat, lng 값을 가져오되 숫자가 아니면 0으로 처리
-          lat: parseFloat(values[getIdx("lat")]) || 0,
-          lng: parseFloat(values[getIdx("lng")]) || 0,
-        };
-      });
+    const parsedClients: Client[] = lines.slice(1).map((line, index) => {
+      const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+      return {
+        id: `client-${index}`,
+        name: values[getIdx("상호")] || '',
+        representative: values[getIdx("대표자")] || '',
+        type: (values[getIdx("개인/법인")] || '').includes("법인") ? 'Corporation' : 'Individual',
+        businessNumber: values[getIdx("사업자번호")] || '',
+        address: values[getIdx("주소")] || '',
+        phone: values[getIdx("전화")] || '',
+        businessType: values[getIdx("종목")] || '',
+        category: values[getIdx("업태")] || '',
+        lat: parseFloat(values[getIdx("lat")]) || 0,
+        lng: parseFloat(values[getIdx("lng")]) || 0,
+      };
+    });
+
+    // 좌표 변환 로직 (좌표가 없는 것만 수행)
+    setIsGeocoding(true);
+    const clientsWithCoords = await batchGeocodeWithGemini(parsedClients);
+    
+    // 🔥 중요: 전체 거래처 리스트를 상태에 반영
+    setClients(clientsWithCoords); 
+
+  } catch (error) {
+    console.error("데이터 로드 실패", error);
+  } finally {
+    setIsLoading(false);
+    setIsGeocoding(false);
+    loadingRef.current = false;
+  }
+}, []);
+
+      //데이터로드함수 끝
 
       // 🔍 모든 데이터에 좌표가 있는지 확인
       const needsGeocoding = parsedClients.some(c => !c.lat || !c.lng);
