@@ -2,19 +2,19 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Loader2, LocateFixed } from 'lucide-react';
 import { Client } from './types';
 
-// 분리된 컴포넌트 불러오기
+// 1. 컴포넌트 불러오기 (상대 경로 확인)
 import MapView from './components/MapView';
 import ClientDetailCard from './components/ClientDetailCard';
 import SearchBar from './components/SearchBar';
 import ConfigModal from './components/ConfigModal';
 
-// 서비스 로직 불러오기
+// 2. 서비스 로직 불러오기 (사용자 요청에 따라 Services 대문자 유지)
 import { batchGeocodeWithGemini, getCachedCoords } from './Services/geminiService';
 
 const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7VTCRMlAbmi0WwxQfxSuBUv4JzgWlNYYChrdAQuoTj68nph8p-C4iMWRfhmWV7TpKmui-SyzKx-Pr/pub?gid=1142932116&single=true&output=csv";
 
 const App: React.FC = () => {
-  // 1. 상태 관리 (State)
+  // 상태 관리 (State)
   const [clients, setClients] = useState<Client[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
@@ -26,7 +26,7 @@ const App: React.FC = () => {
 
   const loadingRef = useRef(false);
 
-  // 2. 필터링 및 선택 로직 (Memo)
+  // 필터링 및 선택 로직 (Memo)
   const filteredClients = useMemo(() => {
     if (!searchQuery.trim()) return clients;
     return clients.filter(c => 
@@ -39,7 +39,7 @@ const App: React.FC = () => {
     return clients.find(c => c.id === selectedClientId) || null;
   }, [clients, selectedClientId]);
 
-  // 3. 기능 함수 (Functions)
+  // 기능 함수 (Functions)
   const findMyLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
@@ -116,7 +116,6 @@ const App: React.FC = () => {
     }
   };
 
-  // 4. 실행 주기 (Effects)
   useEffect(() => { loadData(sheetUrl); }, []);
 
   useEffect(() => {
@@ -125,51 +124,55 @@ const App: React.FC = () => {
     }
   }, [filteredClients, searchQuery]);
 
-  // 5. 화면 렌더링 (UI)
   return (
-  <div className="relative h-screen w-full bg-gray-50 overflow-hidden font-sans flex flex-col">
-    {/* [지도 영역 안전장치] 
-       1. flex-1을 주어 상단 검색바를 제외한 나머지 모든 공간을 차지하게 합니다.
-       2. min-h-0은 flex 자식 요소의 높이 붕괴를 막는 중요한 브라우저 호환성 코드입니다.
-       3. h-full을 통해 내부 MapView가 부모 높이를 상속받을 수 있는 기반을 만듭니다.
-    */}
-    <div className="flex-1 w-full relative min-h-0">
-      <MapView 
-        clients={clients} 
-        selectedClient={selectedClient} 
-        onClientSelect={(c) => setSelectedClientId(c.id)} 
-        myLocation={myLocation}
-      />
-    </div>
+    <div className="relative h-screen w-full bg-gray-50 overflow-hidden font-sans">
+      
+      {/* 1. 지도 영역 (최하단 레이어) */}
+      <div className="absolute inset-0 z-0">
+        <MapView 
+          clients={clients} 
+          selectedClient={selectedClient} 
+          onClientSelect={(c) => setSelectedClientId(c.id)} 
+          myLocation={myLocation}
+        />
+      </div>
 
-    {/* 상단 검색바 (지도가 flex-1이므로 아래 UI들은 absolute로 그 위에 배치됨) */}
-    <SearchBar 
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      onRefresh={() => {setSearchQuery(''); setSelectedClientId(null);}}
-      onOpenConfig={() => setShowConfig(true)}
-      filteredClients={filteredClients}
-      selectedClientId={selectedClientId}
-      onSelectClient={(id) => setSelectedClientId(id)}
-    />
+      {/* 2. 상단 UI 영역 (검색바) */}
+      <div className="absolute top-0 left-0 right-0 z-[1001] p-4 pointer-events-none">
+        <div className="max-w-md mx-auto pointer-events-auto">
+          <SearchBar 
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            onRefresh={() => {setSearchQuery(''); setSelectedClientId(null);}}
+            onOpenConfig={() => setShowConfig(true)}
+            filteredClients={filteredClients}
+            selectedClientId={selectedClientId}
+            onSelectClient={(id) => setSelectedClientId(id)}
+          />
+        </div>
+      </div>
 
-      {/* 내 위치 버튼 */}
+      {/* 3. 내 위치 버튼 */}
       <button 
         onClick={findMyLocation}
-        className="absolute bottom-32 right-4 z-[1000] p-4 bg-white rounded-2xl shadow-2xl border border-gray-100 text-blue-600 active:scale-90 transition-all"
+        className="absolute bottom-32 right-4 z-[1000] p-4 bg-white rounded-2xl shadow-2xl border border-gray-100 text-blue-600 active:scale-90 transition-all hover:bg-gray-50"
       >
         <LocateFixed size={24} />
       </button>
 
-      {/* 하단 상세 카드 (분리된 컴포넌트) */}
+      {/* 4. 하단 상세 카드 */}
       {selectedClient && (
-        <ClientDetailCard 
-          client={selectedClient} 
-          onClose={() => setSelectedClientId(null)} 
-        />
+        <div className="absolute bottom-0 left-0 right-0 z-[1002] p-4 pointer-events-none">
+          <div className="max-w-md mx-auto pointer-events-auto">
+            <ClientDetailCard 
+              client={selectedClient} 
+              onClose={() => setSelectedClientId(null)} 
+            />
+          </div>
+        </div>
       )}
 
-      {/* 설정 모달 (분리된 컴포넌트) */}
+      {/* 5. 설정 모달 */}
       <ConfigModal 
         isOpen={showConfig}
         onClose={() => setShowConfig(false)}
@@ -178,15 +181,16 @@ const App: React.FC = () => {
         onSave={() => {loadData(sheetUrl); setShowConfig(false);}}
       />
 
-      {/* 로딩 표시기 */}
+      {/* 6. 로딩 알림창 */}
       {(isLoading || isGeocoding) && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[1000] bg-black/80 backdrop-blur-md text-white px-6 py-3 rounded-full flex items-center gap-3 shadow-2xl border border-white/10">
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-[1005] bg-black/80 backdrop-blur-md text-white px-6 py-3 rounded-full flex items-center gap-3 shadow-2xl border border-white/10">
           <Loader2 className="animate-spin text-blue-400" size={18} />
           <span className="text-xs font-black tracking-tight">
             {isGeocoding ? 'AI 주소 분석 중...' : '데이터 불러오는 중...'}
           </span>
         </div>
       )}
+      
     </div>
   );
 };
